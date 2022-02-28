@@ -4,35 +4,18 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-fp = "data\\vlc-record-2021-05-12-12h42m56s-TI_5KM_vehicle.asf-.avi"
-
+# fp = "data\\vlc-record-2021-05-12-12h42m56s-TI_5KM_vehicle.asf-.avi"
+fp = "imgs\\img-2.jfif"
 try:
     cap = cv2.VideoCapture(fp)
 except:
     cap = cv2.VideoCapture(0)
 
+fps = cap.get(cv2.CAP_PROP_FPS)
+
 sns.set_style('darkgrid')
 
-fig, ax = plt.subplots()
-
-ax.set_title("Histogram")
-ax.set_xlabel("Pixel Values")
-ax.set_ylabel("Pixel Intensity")
-
 bins = 256
-x_data = np.arange(bins)
-y_data = np.zeros((bins, 1))
-
-plotGray, = ax.plot(x_data, y_data, c='royalblue', lw=2, label="intensity")
-
-ax.set_xlim(0, bins-1)
-ax.set_ylim(0, 0.1)
-# ax.axis('auto')
-# ax.set_autoscale_on(True)
-
-ax.legend()
-# plt.ion()
-# plt.show()
 
 while(cap):
     ret, frame = cap.read()
@@ -55,13 +38,11 @@ while(cap):
     equalized_img_lst = [transform_map[p] for p in img_list]
     equalized_img = np.reshape(np.asarray(equalized_img_lst), frame.shape)
 
-    cv2.imshow("eq_norm", equalized_img)
+    equalized_img = cv2.bitwise_not(equalized_img)
 
-    # plotGray.set_ydata(histogram)
-    # fig.canvas.draw()
-    # plt.pause(0.001)
+    cv2.imshow("eq_norm", equalized_img, )
 
-    if cv2.waitKey(10) & 0xFF == ord('q'):
+    if cv2.waitKey(0) & 0xFF == ord('q'):
         cap.release()
         cv2.destroyAllWindows()
         break

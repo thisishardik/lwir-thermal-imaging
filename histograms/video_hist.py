@@ -9,7 +9,7 @@ import seaborn as sns
 fp = "data\\TI_vehicle 8.7km.asf"
 
 try:
-    cap = cv2.VideoCapture(fp)
+    cap = cv2.VideoCapture(0)
 except:
     cap = cv2.VideoCapture(0)
 
@@ -21,15 +21,14 @@ ax.set_title("Histogram")
 ax.set_xlabel("Pixel Values")
 ax.set_ylabel("Pixel Intensity")
 
-bins = 11
+bins = 256
 x_data = np.arange(bins)
 y_data = np.zeros((bins, 1))
 
-plotGray, = ax.plot(x_data, y_data, c='r', lw=2, label="intensity")
+plotGray, = ax.plot(x_data, y_data, c='royalblue', lw=2, label="intensity")
 
 ax.set_xlim(0, bins-1)
-ax.set_ylim(0, 1)
-
+ax.set_ylim(0, 0.25)
 
 ax.legend()
 plt.ion()

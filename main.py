@@ -3,9 +3,30 @@ import cv2
 from PIL import Image
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
 
-# fp = "data\\vlc-record-2021-05-12-12h42m56s-TI_5KM_vehicle.asf-.avi"
-fp = "imgs\\img-2.jfif"
+from config import BINS
+from hist_eq_contrast import histEqContrast
+from edge_conv import sharpenEdges
+# from config import out_path
+
+
+def write_video(frames_list, fps):
+    fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+    out = cv2.VideoWriter(f'result_equ_img_{np.random.randint(0, 99)}.mp4', fourcc, fps, (
+        frames_list[0].shape[1], frames_list[0].shape[0]), False)
+    for i in range(len(frames_list)):
+        out.write(frames_list[i])
+    print("Saved")
+    out.release()
+
+
+fp = "data\\vlc-record-2021-05-12-12h42m56s-TI_5KM_vehicle.asf-.avi"
+# fp = "data\\imgs\\img-2.jfif"
+
+equalized_img_frames = []
+input_frames = []
+
 try:
     cap = cv2.VideoCapture(fp)
 except:
@@ -13,36 +34,28 @@ except:
 
 fps = cap.get(cv2.CAP_PROP_FPS)
 
-sns.set_style('darkgrid')
-
-bins = 256
-
 while(cap):
     ret, frame = cap.read()
     if not ret:
+        write_video(equalized_img_frames, fps)
         break
 
-    num_of_pixels = frame.shape[0] * frame.shape[1]
-
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    # input_frames.append(frame)
     cv2.imshow("frame", frame)
 
-    histogram = cv2.calcHist([frame], [0], None, [bins], [
-                             0, bins]) / num_of_pixels
+    equalized_img = histEqContrast(frame)
+    equalized_img_edges_conv = sharpenEdges(equalized_img)
 
-    norm_cum_histogram = np.cumsum(histogram)
+    equalized_img_frames.append(equalized_img_edges_conv)
 
-    transform_map = np.floor(255 * norm_cum_histogram).astype(np.uint8)
+    # concatenated_vid = [np.hstack((input_frames[i], np.zeros(
+    #     (input_frames[0].shape[0], 10)), equalized_img_frames[i])).astype(np.float32) for i in range(len(input_frames))]
 
-    img_list = list(frame.flatten())
-    equalized_img_lst = [transform_map[p] for p in img_list]
-    equalized_img = np.reshape(np.asarray(equalized_img_lst), frame.shape)
+    cv2.imshow("eq_norm_sharpened", equalized_img_edges_conv)
 
-    equalized_img = cv2.bitwise_not(equalized_img)
-
-    cv2.imshow("eq_norm", equalized_img, )
-
-    if cv2.waitKey(0) & 0xFF == ord('q'):
+    if cv2.waitKey(int(fps)) & 0xFF == ord('q'):
         cap.release()
         cv2.destroyAllWindows()
+        write_video(equalized_img_frames, fps)
         break
